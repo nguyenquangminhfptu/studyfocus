@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PingController {
     @GetMapping("/api/ping")
     public String ping() {
-        return "backend is alive";
+        return "backend is alive to test";
     }
 }
