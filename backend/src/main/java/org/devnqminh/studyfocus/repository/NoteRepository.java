@@ -1,9 +1,9 @@
-package org.devnqminh.studyfocus.repository;
-
-import org.devnqminh.studyfocus.entity.Note;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface NoteRepository extends JpaRepository<Note, String> {
-}
+//package org.devnqminh.studyfocus.repository;
+//
+//import org.devnqminh.studyfocus.entity.Note;
+//import org.springframework.data.jpa.repository.JpaRepository;
+//import org.springframework.stereotype.Repository;
+//
+//@Repository
+//public interface NoteRepository extends JpaRepository<Note, String> {
+//}
