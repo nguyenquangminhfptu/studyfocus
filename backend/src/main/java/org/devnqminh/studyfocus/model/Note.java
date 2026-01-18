@@ -1,10 +1,9 @@
-package org.devnqminh.studyfocus.entity;
+package org.devnqminh.studyfocus.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.devnqminh.studyfocus.entity.User;
 
 @Entity
 @Table(name = "notes")

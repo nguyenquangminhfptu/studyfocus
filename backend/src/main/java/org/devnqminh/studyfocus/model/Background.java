@@ -1,4 +1,4 @@
-package org.devnqminh.studyfocus.entity;
+package org.devnqminh.studyfocus.model;
 
 
 import jakarta.persistence.*;
