@@ -1,7 +1,10 @@
 package org.devnqminh.studyfocus.service;
 
-import org.devnqminh.studyfocus.dto.SessionRequest;
-import org.devnqminh.studyfocus.dto.SessionResponse;
+import lombok.RequiredArgsConstructor;
+import org.devnqminh.studyfocus.dto.request.SessionRequest;
+import org.devnqminh.studyfocus.dto.response.SessionResponse;
+import org.devnqminh.studyfocus.dto.response.StatsResponse;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -15,5 +18,5 @@ public interface StudyTimeService {
 
     void deleteSession(Long id, Long userId);
 
-    //StatsResponse getUserStats(Long userId);
+    StatsResponse getUserStats(Long userId);
 }

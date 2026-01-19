@@ -1,4 +1,4 @@
-package org.devnqminh.studyfocus.dto;
+package org.devnqminh.studyfocus.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 

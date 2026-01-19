@@ -4,10 +4,11 @@ import org.devnqminh.studyfocus.model.StudyTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 
 import java.util.List;
-
+@Repository
 public interface StudyTimeRepository extends JpaRepository<StudyTime, Long> {
     // Tìm sessions theo user, sắp xếp mới nhất trước
     List<StudyTime> findByUserIdOrderByIdDesc(Long userId);
