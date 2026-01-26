@@ -9,3 +9,8 @@ backend/.idea/
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+
+
+studyfocus/
+.idea/
+.vscode/

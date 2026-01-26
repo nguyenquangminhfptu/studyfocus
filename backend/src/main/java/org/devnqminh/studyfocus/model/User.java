@@ -30,10 +30,12 @@ public class User {
     @Column(nullable = false, unique = true, length = 60)
     private String username;
 
-    // pass(String) -> nên lưu passwordHash
     @NotBlank
     @Column(nullable = false, length = 255)
     private String passwordHash;
+
+    @Column(nullable = true, unique = true)
+    private String email;
 
     @Column(length = 255)
     private String location;

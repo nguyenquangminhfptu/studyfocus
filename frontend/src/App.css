@@ -15,9 +15,13 @@
   filter: drop-shadow(0 0 2em #646cffaa);
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #52818eaa);
 }
-
+.login-title {
+  color: #1976d2;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
