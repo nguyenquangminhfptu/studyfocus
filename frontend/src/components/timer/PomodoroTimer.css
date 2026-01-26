@@ -1,0 +1,251 @@
+/* ==========================================
+   CONTAINER
+   ========================================== */
+
+.timer-container {
+    /* Chiếm full màn hình */
+    min-height: 100vh;
+
+    /* Dùng Flexbox để căn giữa */
+    display: flex;
+    flex-direction: column;
+    /* Xếp dọc */
+    align-items: center;
+    /* Căn giữa ngang */
+    justify-content: center;
+    /* Căn giữa dọc */
+
+    /* Cho phép position absolute cho background */
+    position: relative;
+    overflow: hidden;
+
+    /* Font */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ==========================================
+   BACKGROUND
+   ========================================== */
+
+.timer-background {
+    /* Absolute = nằm phía sau, không ảnh hưởng layout */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    /* Gradient màu đẹp (giống ảnh bạn gửi) */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    /* Hoặc dùng ảnh: */
+    /* background-image: url('/desert-background.jpg'); */
+    /* background-size: cover; */
+    /* background-position: center; */
+
+    /* Đẩy xuống phía sau */
+    z-index: -1;
+}
+
+/* ==========================================
+   MODE SELECTOR BUTTON
+   ========================================== */
+
+.mode-selector {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Căn giữa */
+}
+
+.mode-btn {
+    /* Nền trong suốt mờ */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    /* Hiệu ứng mờ */
+
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+
+    font-size: 14px;
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+}
+
+/* ==========================================
+   TAG DOTS (BA CHẤM TRÒN)
+   ========================================== */
+
+.tag-dots {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    /* Tròn 100% */
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: white;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.dot:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* ==========================================
+   TIMER DISPLAY (25:00)
+   ========================================== */
+
+.timer-display {
+    margin-bottom: 40px;
+}
+
+.time {
+    /* Chữ SIÊU TO */
+    font-size: 120px;
+    font-weight: 700;
+    color: white;
+
+    /* Shadow để nổi bật */
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+
+    margin: 0;
+
+    /* Font số đẹp (tabular numbers) */
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================
+   TASK INPUT
+   ========================================== */
+
+.task-input {
+    margin-bottom: 30px;
+}
+
+.task-input input {
+    /* Nền trong suốt */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+
+    padding: 12px 20px;
+    width: 400px;
+
+    color: white;
+    font-size: 16px;
+    text-align: center;
+
+    transition: all 0.3s ease;
+}
+
+.task-input input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.task-input input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ==========================================
+   BUTTONS
+   ========================================== */
+
+.start-btn,
+.reset-btn {
+    background: white;
+    color: #667eea;
+
+    border: none;
+    border-radius: 30px;
+
+    padding: 15px 60px;
+    margin: 0 10px;
+
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.start-btn:hover,
+.reset-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.start-btn:active,
+.reset-btn:active {
+    transform: translateY(0);
+}
+
+.reset-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 12px 40px;
+    font-size: 16px;
+}
+
+/* ==========================================
+   STATS
+   ========================================== */
+
+.stats {
+    position: absolute;
+    bottom: 40px;
+
+    color: white;
+    font-size: 14px;
+    text-align: center;
+}
+
+.stats p {
+    margin: 5px 0;
+    opacity: 0.8;
+}
+
+/* ==========================================
+   RESPONSIVE (Mobile)
+   ========================================== */
+
+@media (max-width: 768px) {
+    .time {
+        font-size: 80px;
+    }
+
+    .task-input input {
+        width: 90%;
+    }
+
+    .start-btn {
+        padding: 12px 40px;
+        font-size: 16px;
+    }
+}
+
+s
