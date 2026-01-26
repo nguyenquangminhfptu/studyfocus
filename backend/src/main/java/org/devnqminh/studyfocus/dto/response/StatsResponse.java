@@ -1,6 +1,6 @@
 package org.devnqminh.studyfocus.dto.response;
 
-public record StatsResonpse(
+public record StatsResponse(
          Double totalStudyTime,
          Long totalSessions,
          Double averageSessionDuration,

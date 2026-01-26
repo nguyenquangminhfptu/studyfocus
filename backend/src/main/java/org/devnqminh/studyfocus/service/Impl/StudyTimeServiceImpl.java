@@ -1,6 +1,10 @@
 package org.devnqminh.studyfocus.service.Impl;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.devnqminh.studyfocus.dto.request.SessionRequest;
+import org.devnqminh.studyfocus.dto.response.SessionResponse;
+import org.devnqminh.studyfocus.dto.response.StatsResponse;
 import org.devnqminh.studyfocus.dto.request.SessionRequest;
 import org.devnqminh.studyfocus.dto.response.SessionResponse;
 import org.devnqminh.studyfocus.model.StudyTime;
@@ -8,13 +12,17 @@ import org.devnqminh.studyfocus.model.User;
 import org.devnqminh.studyfocus.repository.StudyTimeRepository;
 import org.devnqminh.studyfocus.repository.UserRepository;
 import org.devnqminh.studyfocus.service.IStudyTimeService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+@Service
+@RequiredArgsConstructor
 public class StudyTimeServiceImpl  implements IStudyTimeService {
-    private StudyTimeRepository studyTimeRepository;
-    private UserRepository userRepository;
+    private final StudyTimeRepository studyTimeRepository;
+    private final UserRepository userRepository;
 
 
     /**
@@ -40,6 +48,7 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
      * Lấy tất cả sessions của user
      */
     @Override
+
     public List<SessionResponse> getUserSessions(Long userId) {
         List<StudyTime> sessions = studyTimeRepository.findByUserIdOrderByIdDesc(userId);
         return sessions.stream()
@@ -48,6 +57,7 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
     }
 
     @Override
+
     public SessionResponse getSessionById(Long id, Long userId) {
         StudyTime session = studyTimeRepository.findById(id).orElseThrow(() -> new RuntimeException("Session not found"));
         //kiem tra ownership (session co thuoc ve user nay khong)
@@ -58,9 +68,36 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
         return toSessionResponse(session);
     }
 
+    /**
+     * Xóa session
+     */
     @Override
     public void deleteSession(Long id, Long userId) {
+        StudyTime session = studyTimeRepository.findById(id).orElseThrow(() -> new RuntimeException("Session not found"));
+        //check ownership
+        if(!session.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Wrong user id");
+        }
+        studyTimeRepository.delete(session);
+    }
 
+
+    /**
+     * Lấy statistics của user
+     */
+    @Override
+    public StatsResponse getUserStats(Long userId) {
+        Double totalTime = studyTimeRepository.getTotalStudyTimeByUserId(userId);
+        Long totalSessions = studyTimeRepository.countByUserId(userId);
+        Integer totalPomodoros = studyTimeRepository.getTotalPomodorosByUserId(userId);
+        //tinh trung binh
+        Double avgDuration = totalSessions > 0 ? (totalTime / totalSessions) : 0.0;
+        return new StatsResponse(
+                totalTime,
+                totalSessions,
+                avgDuration,
+                totalPomodoros
+        );
     }
 
 
