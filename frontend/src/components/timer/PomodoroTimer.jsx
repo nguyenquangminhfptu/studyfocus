@@ -1,43 +1,32 @@
-import './PomodoroTimer.css';  // CSS file (sẽ tạo sau)
+import React, { useState } from 'react';
+import './PomodoroTimer.css';
+import useTimer from '/Users/quangminhnguyen/IdeaProjects/studyfocus_work/frontend/src/hooks/userTimer.js';
+
+
 export default function PomodoroTimer() {
-    return (
+    const { minutes, seconds, isRunning, toggleTimer, resetTimer } = useTimer(25);
+    return(
         <div className="timer-container">
             {/* Background */}
             <div className="timer-background"></div>
 
-            {/* Mode Toggle Button */}
-            <div className="mode-selector">
-                <button className="mode-btn">Switch Mode</button>
-            </div>
-
-            {/* Decorative Dots */}
-            <div className="tag-dots">
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-            </div>
-
-            {/* Timer Display */}
+             {/* Timer Display */}
             <div className="timer-display">
-                <h1 className="time">00:00</h1>
-            </div>
-
-            {/* Task Input */}
-            <div className="task-input">
-                <input type="text" placeholder="What are you working on?" />
+                <h1 className="time">
+                    {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+                </h1>
             </div>
 
             {/* Start/Pause Button */}
-            <button className="start-btn">Start</button>
+            <button onClick={toggleTimer} className="start-btn">
+                {isRunning ? 'Pause' : 'Start'}
+            </button>
 
             {/* Reset Button */}
-            <button className="reset-btn">Reset</button>
+            <button onClick={resetTimer} className="reset-btn">Reset</button>
 
-            {/* Stats */}
-            <div className="stats">
-                <p>🍅 Pomodoros: 0</p>
-                <p>⏱️ Mode: pomodoro</p>
-            </div>
+            {/* Mode Button */}
+            <button className="mode-btn">Mode</button>
         </div>
-    );
+    )
 }
