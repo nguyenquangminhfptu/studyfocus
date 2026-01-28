@@ -5,18 +5,22 @@ import lombok.RequiredArgsConstructor;
 import org.devnqminh.studyfocus.dto.request.SessionRequest;
 import org.devnqminh.studyfocus.dto.response.SessionResponse;
 import org.devnqminh.studyfocus.dto.response.StatsResponse;
+import org.devnqminh.studyfocus.dto.request.SessionRequest;
+import org.devnqminh.studyfocus.dto.response.SessionResponse;
 import org.devnqminh.studyfocus.model.StudyTime;
 import org.devnqminh.studyfocus.model.User;
 import org.devnqminh.studyfocus.repository.StudyTimeRepository;
 import org.devnqminh.studyfocus.repository.UserRepository;
-import org.devnqminh.studyfocus.service.StudyTimeService;
+import org.devnqminh.studyfocus.service.IStudyTimeService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+
 @Service
 @RequiredArgsConstructor
-public class StudyTimeServiceImpl  implements StudyTimeService {
+public class StudyTimeServiceImpl  implements IStudyTimeService {
     private final StudyTimeRepository studyTimeRepository;
     private final UserRepository userRepository;
 

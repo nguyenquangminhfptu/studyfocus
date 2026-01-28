@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.devnqminh.studyfocus.dto.request.SessionRequest;
 import org.devnqminh.studyfocus.dto.response.SessionResponse;
 import org.devnqminh.studyfocus.dto.response.StatsResponse;
-import org.devnqminh.studyfocus.service.StudyTimeService;
+import org.devnqminh.studyfocus.service.IStudyTimeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/study-sessions")
 @RequiredArgsConstructor
 public class StudyTimeController {
-    private final StudyTimeService studyTimeService;
+    private final IStudyTimeService studyTimeService;
     /**
      * Lưu một study session mới
      * POST /api/study-sessions
