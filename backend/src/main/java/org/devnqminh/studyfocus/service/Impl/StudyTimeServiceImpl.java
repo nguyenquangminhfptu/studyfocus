@@ -100,7 +100,6 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
         );
     }
 
-
     private SessionResponse toSessionResponse(StudyTime studyTime) {
         return new SessionResponse(
                 studyTime.getId(),
@@ -112,3 +111,4 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
         );
     }
 }
+
