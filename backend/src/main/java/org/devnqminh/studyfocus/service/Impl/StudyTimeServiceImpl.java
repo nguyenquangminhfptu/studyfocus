@@ -12,6 +12,8 @@ import org.devnqminh.studyfocus.model.User;
 import org.devnqminh.studyfocus.repository.StudyTimeRepository;
 import org.devnqminh.studyfocus.repository.UserRepository;
 import org.devnqminh.studyfocus.service.IStudyTimeService;
+//import org.springframework.cache.annotation.CacheEvict;
+//import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,7 +50,6 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
      * Lấy tất cả sessions của user
      */
     @Override
-
     public List<SessionResponse> getUserSessions(Long userId) {
         List<StudyTime> sessions = studyTimeRepository.findByUserIdOrderByIdDesc(userId);
         return sessions.stream()
@@ -57,7 +58,6 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
     }
 
     @Override
-
     public SessionResponse getSessionById(Long id, Long userId) {
         StudyTime session = studyTimeRepository.findById(id).orElseThrow(() -> new RuntimeException("Session not found"));
         //kiem tra ownership (session co thuoc ve user nay khong)

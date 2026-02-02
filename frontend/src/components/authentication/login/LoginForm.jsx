@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Lock, Facebook, Twitter } from 'lucide-react';
 import { login } from '../../../api/authentication/auth';
 import './LoginForm.css';
 
 export default function LoginForm({  }) {
-   const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Load remembered username khi component mount
+  useEffect(() => {
+    const remembered = localStorage.getItem('rememberMe') === 'true';
+    const savedUsername = localStorage.getItem('username');
+    
+    if (remembered && savedUsername) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,12 +29,15 @@ export default function LoginForm({  }) {
 
     try {
       const res = await login({ username, password });
-      localStorage.setItem('token', res.token);
       
-      // Nếu chọn Remember Me, lưu thêm thông tin
+      // Nếu chọn Remember Me, lưu thông tin
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
         localStorage.setItem('username', username);
+      } else {
+        // Nếu không chọn, xóa thông tin đã lưu
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('username');
       }
       
       window.location.href = '/';
@@ -36,30 +50,25 @@ export default function LoginForm({  }) {
 
   const handleSocialLogin = (platform) => {
     console.log(`${platform} login - Still developing`);
-    // Thêm logic đăng nhập social ở đây
   };
 
   return (
     <div className="login-wrapper">
-      {/* Background Image with Overlay */}
       <div className="login-background" />
       <div className="login-overlay" />
 
-      {/* Login Form Container */}
       <div className="login-content">
         <div className="login-header">
           <h1>Login</h1>
         </div>
 
-        <div className="login-form">
-          {/* Error Message */}
+        <form className="login-form" onSubmit={handleLogin}>
           {error && (
             <div className="error-message">
               {error}
             </div>
           )}
 
-          {/* Username Input */}
           <div className="input-group">
             <User className="input-icon" />
             <input
@@ -73,7 +82,6 @@ export default function LoginForm({  }) {
             />
           </div>
 
-          {/* Password Input */}
           <div className="input-group">
             <Lock className="input-icon" />
             <input
@@ -87,7 +95,6 @@ export default function LoginForm({  }) {
             />
           </div>
 
-          {/* Remember Me & Forgot Password */}
           <div className="form-options">
             <label className="remember-me">
               <input
@@ -103,21 +110,18 @@ export default function LoginForm({  }) {
             </a>
           </div>
 
-          {/* Login Button */}
           <button 
-            onClick={handleLogin} 
+            type="submit"
             className="login-button"
             disabled={loading}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
 
-          {/* OR Divider */}
           <div className="divider">
             <div className="divider-circle">or</div>
           </div>
 
-          {/* Social Login Buttons */}
           <div className="social-buttons">
             <button
               onClick={() => handleSocialLogin('Facebook')}
@@ -138,17 +142,16 @@ export default function LoginForm({  }) {
               <span>Twitter</span>
             </button>
           </div>
-        </div>
+        </form>
 
-        {/* Footer */}
         <div className="login-footer">
-        <p>
-          Do not have an account?{' '}
-          <Link to="/register" style={{ color: '#1976d2' }}>
-            Register
-          </Link>
-        </p>
-      </div>
+          <p>
+            Do not have an account?{' '}
+          <Link to="/register" style={{ color: '#ffffff', fontWeight: '500', textDecoration: 'none' }}>
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,10 @@ export const studySessionAPI = {//tên đối tượng chứa các function
     // ============ GET ALL SESSIONS ============
     getAllSessions: async () => {//arrow function bất đồng bộ(chờ api trả về, chờ đợi mà k làm treo ứng dụng)
         // fetch() = gọi API (giống curl trong terminal)
-        const response = await fetch(`${API_URL}/study-sessions`);
+        const response = await fetch(`${API_URL}/study-sessions`, {
+            credentials: 'include',
+        });
+
         // Kiểm tra response có OK không (status 200-299)
         if (!response.ok) {
             throw new Error('Lỗi khi lấy danh sách sessions');
@@ -21,6 +24,7 @@ export const studySessionAPI = {//tên đối tượng chứa các function
             headers: {
                 'Content-Type': 'application/json', //tell backend I sent json
             },
+            credentials: 'include',
             body: JSON.stringify(sessionData),
         });
         if (!response.ok) {
@@ -30,8 +34,10 @@ export const studySessionAPI = {//tên đối tượng chứa các function
     },
     // ============ GET STATISTICS ============
     getStats: async () => {
-        const response = await fetch(`${API_URL}/study-sessions/stats`);
-
+        const response = await fetch(`${API_URL}/study-sessions/stats`, {
+            credentials: 'include',
+        });
+        
         if (!response.ok) {
             throw new Error('Lỗi khi lấy thống kê');
         }
@@ -41,7 +47,8 @@ export const studySessionAPI = {//tên đối tượng chứa các function
     // ============ DELETE SESSION ============
     deleteSession: async (id) => {
         const response = await fetch(`${API_URL}/study-sessions/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: 'include',
         });
 
         if (!response.ok) {
