@@ -145,7 +145,7 @@ export default function RegisterForm() {
 
         {/* Footer */}
         <div className="register-footer">
-          <p>Already have an account? <a href="/login">Log in here</a></p>
+          <p>Already have an account? <a href="/login">Log in</a></p>
         </div>
       </div>
     </div>

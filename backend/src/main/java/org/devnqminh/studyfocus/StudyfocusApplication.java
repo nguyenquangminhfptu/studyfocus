@@ -2,6 +2,8 @@ package org.devnqminh.studyfocus;
 
 import org.devnqminh.studyfocus.model.User;
 import org.springframework.boot.CommandLineRunner;
+//import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
+//import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
