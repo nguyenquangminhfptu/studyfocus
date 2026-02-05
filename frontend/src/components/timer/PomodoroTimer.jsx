@@ -24,6 +24,7 @@ import chattingIcon from '../../assets/ground/chatting.svg';
 import findUser from '../../assets/ground/finduser.svg';
 import focusLightning from '../../assets/ground/lightning.svg';
 import clockIcon from '../../assets/ground/clock.svg';
+import settingClockIcon from '../../assets/user-menu/settingClock.svg';
 
 // ========== STATIC CONFIGS ==========
 const MENU_ITEMS = [
@@ -62,7 +63,7 @@ const FOOTER_BUTTONS_RIGHT = [
 ];
 
 // ========== MEMOIZED COMPONENTS ==========
-// Icon renderer - FIX: check type field thay vì .endsWith
+// Icon renderer
 const IconRenderer = React.memo(({ icon, type }) => {
   if (type === 'svg') {
     return (
@@ -195,11 +196,12 @@ const UserDropdownHeader = React.memo(({ onClose }) => {
 });
 
 UserDropdownHeader.displayName = 'UserDropdownHeader';
-
+const PRESET_TIMES = [25, 5, 10]; // Pomodoro: 25min, Short Break: 5min, Long Break: 10min
 // ========== MAIN COMPONENT ==========
 export default function PomodoroTimer() {
   const navigate = useNavigate();
-  const { minutes, seconds, isRunning, toggleTimer } = useTimer(25);
+  // Thay đổi khởi tạo useTimer để có thể cập nhật thời gian
+  const { minutes, seconds, isRunning, toggleTimer, setTime } = useTimer(25);
   
   // States
   const [mode, setMode] = useState('pomodoro');
@@ -207,7 +209,11 @@ export default function PomodoroTimer() {
   const [task, setTask] = useState('');
   const [currentPreset, setCurrentPreset] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isPiPMode, setIsPiPMode] = useState(false);
+  
+  // Refs
   const userMenuRef = useRef(null);
+  const videoRef = useRef(null); 
 
   // ========== CLICK OUTSIDE HANDLER ==========
   useEffect(() => {
@@ -223,6 +229,22 @@ export default function PomodoroTimer() {
     }
   }, [showUserMenu]);
 
+  // ========== PICTURE-IN-PICTURE SETUP ========== 
+  useEffect(() => {
+    // Create hidden video element for PiP
+    const video = document.createElement('video');
+    video.muted = true;
+    video.style.display = 'none';
+    videoRef.current = video;
+    document.body.appendChild(video);
+
+    return () => {
+      if (videoRef.current) {
+        document.body.removeChild(videoRef.current);
+      }
+    };
+  }, []);
+
   // ========== OPTIMIZED HANDLERS (useCallback) ==========
   
   const handleToggleUserMenu = useCallback(() => {
@@ -234,28 +256,169 @@ export default function PomodoroTimer() {
   }, []);
 
   const handleMenuItemClick = useCallback(async (itemId) => {
-  if (itemId === 'logout') {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      alert('Logout failed');
+    if (itemId === 'logout') {
+      try {
+        await logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Logout failed');
+      }
+    } else {
+      console.log('Menu item clicked:', itemId);
     }
-  } else {
-    console.log('Menu item clicked:', itemId);
-  }
-  setShowUserMenu(false);
-}, [navigate]);
+    setShowUserMenu(false);
+  }, [navigate]);
 
+
+  const handleSkipToBreak = useCallback(() => {
+    // Chuyển sang preset tiếp theo
+    const nextPreset = (currentPreset + 1) % PRESET_NAMES.length;
+    setCurrentPreset(nextPreset);
+    
+    // Lấy thời gian cho preset mới
+    const newTime = PRESET_TIMES[nextPreset];
+    
+    // Cập nhật timer với thời gian mới
+    if (setTime) {
+      setTime(newTime);
+    }
+    
+    console.log('Skipped to:', PRESET_NAMES[nextPreset], `(${newTime} minutes)`);
+  }, [currentPreset, setTime]);
+
+  // Cập nhật handlePresetChange để cũng thay đổi thời gian
   const handlePresetChange = useCallback((index) => {
     setCurrentPreset(index);
-    // TODO: Update timer based on preset
-  }, []);
+    
+    // Cập nhật thời gian khi đổi preset
+    const newTime = PRESET_TIMES[index];
+    if (setTime) {
+      setTime(newTime);
+    }
+  }, [setTime]);
 
-  const handleToggleMode = useCallback(() => {
-    setMode(prev => prev === 'pomodoro' ? 'stopwatch' : 'pomodoro');
-  }, []);
+
+
+// Cập nhật useEffect để vẽ background + timer
+useEffect(() => {
+  const video = document.getElementById('pip-video');
+  if (!video || !document.pictureInPictureElement) return;
+
+  const canvas = document.getElementById('pip-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  
+  // Tạo image object từ background
+  const bgImage = new Image();
+  bgImage.crossOrigin = 'anonymous';
+  bgImage.src = backgroundImage;
+  
+  bgImage.onload = () => {
+    // Vẽ background image
+    ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    
+    // Vẽ overlay tối
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Vẽ timer text
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 20;
+    ctx.fillText(
+      `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`, 
+      canvas.width / 2, 
+      canvas.height / 2
+    );
+  };
+  
+  // Fallback nếu ảnh chưa load
+  if (bgImage.complete) {
+    bgImage.onload();
+  }
+}, [minutes, seconds]);
+
+// Cập nhật handleTogglePiP để vẽ background lúc khởi tạo
+const handleTogglePiP = useCallback(async () => {
+  if (!document.pictureInPictureEnabled) {
+    alert('Your browser does not support Picture-in-Picture');
+    return;
+  }
+
+  try {
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+      return;
+    }
+
+    let video = document.getElementById('pip-video');
+    let canvas = document.getElementById('pip-canvas');
+    
+    if (!video) {
+      // Tạo canvas
+      canvas = document.createElement('canvas');
+      canvas.id = 'pip-canvas';
+      canvas.width = 400;
+      canvas.height = 200;
+      
+      // Tạo video
+      video = document.createElement('video');
+      video.id = 'pip-video';
+      video.style.display = 'none';
+      video.muted = true;
+      video.autoplay = true;
+      
+      // Vẽ background + timer lần đầu
+      const ctx = canvas.getContext('2d');
+      const bgImage = new Image();
+      bgImage.crossOrigin = 'anonymous';
+      bgImage.src = backgroundImage;
+      
+      bgImage.onload = () => {
+        // Vẽ background
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+        
+        // Vẽ overlay
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Vẽ timer
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 60px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+        ctx.shadowBlur = 20;
+        ctx.fillText(
+          `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`, 
+          canvas.width / 2,
+          canvas.height / 2
+        );
+      };
+      
+      // Stream canvas sang video
+      const stream = canvas.captureStream(30);
+      video.srcObject = stream;
+      document.body.appendChild(video);
+      document.body.appendChild(canvas);
+      canvas.style.display = 'none';
+    }
+    
+    await video.play();
+    await video.requestPictureInPicture();
+    
+  } catch (error) {
+    console.error('Error Picture-in-Picture:', error);
+    alert('Cannot enable Picture-in-Picture: ' + error.message);
+  }
+}, [minutes, seconds]);
+
+
 
   const handleTaskChange = useCallback((e) => {
     setTask(e.target.value);
@@ -367,14 +530,19 @@ export default function PomodoroTimer() {
 
         {/* Control Buttons */}
         <div className="control-section">
-          {/* Toggle Mode */}
+          {/* Settings Icon */}
           <button
-            className="toggle-mode-btn"
-            onClick={handleToggleMode}
-            aria-label="Toggle between Pomodoro or Stopwatch mode"
+            className="settings-icon-btn"
+            onClick={handleOpenSettings}
+            aria-label="Open settings"
           >
-            <span aria-hidden="true">🔄</span>
-            <span>Toggle between Pomodoro or Stopwatch.</span>
+            <img 
+              src={settingClockIcon} 
+              alt="Settings"
+              className="settings-icon-img"
+              width="24"
+              height="24"
+            />
           </button>
 
           {/* Start Button */}
@@ -386,13 +554,30 @@ export default function PomodoroTimer() {
             {isRunning ? 'Pause' : 'Start'}
           </button>
 
-          {/* Settings Icon */}
+          {/* Picture-in-Picture Button */}
           <button
-            className="settings-icon-btn"
-            onClick={handleOpenSettings}
-            aria-label="Open settings"
+            className="pip-btn"
+            onClick={handleTogglePiP}
+            aria-label="Toggle Picture-in-Picture"
+            title="Picture-in-Picture"
           >
-            ⚙️
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <rect x="13" y="13" width="6" height="6" rx="1"/>
+            </svg>
+          </button>
+
+          {/* Skip Button */}
+          <button
+            className="skip-btn"
+            onClick={handleSkipToBreak}
+            aria-label="Skip to next preset"
+            title="Skip to break"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="5 4 15 12 5 20 5 4"/>
+              <line x1="19" y1="5" x2="19" y2="19"/>
+            </svg>
           </button>
         </div>
       </div>
