@@ -17,18 +17,18 @@
     inset: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(3px) brightness(0.8);
+   
     z-index: -2;
 }
-
+// tạo lớp đen phủ lên:
 .timer-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
+    /* background: linear-gradient(
         to bottom,
         rgba(0, 0, 0, 0.3) 0%,
         rgba(0, 0, 0, 0.5) 100%
-    );
+    ); */
     z-index: -1;
 }
 
@@ -351,13 +351,18 @@
 }
 
 .time {
-    font-size: 140px;
-    font-weight: 300;
+    font-size: 150px;
+    font-weight: 700;
+    letter-spacing: 8px;
     color: white;
-    text-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
-    letter-spacing: -8px;
+    text-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.2),
+        0 16px 32px rgba(0, 0, 0, 0.15);  /* Multi-layer shadow cho độ sâu */
+    letter-spacing: 4px;  /* Thay đổi từ -8px → 4px để có khoảng cách đẹp */
     margin: 0;
     line-height: 1;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
 /* Task Input */
@@ -478,7 +483,141 @@
     transform: translateY(0);
 }
 
-/* Picture-in-Picture Button - NEW */
+
+/* ========== PiP SESSION STYLES ========== */
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+body {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.pip-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+
+
+.pip-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: white;
+}
+
+.pip-timer {
+  font-size: 100px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  margin-bottom: 30px;
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    0 16px 32px rgba(0, 0, 0, 0.15);
+  line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  color: white;
+}
+
+.pip-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pip-btn {
+  background: rgb(255, 255, 255) !important;  /* Màu trắng solid, không trong suốt */
+  color: #1a202c !important;
+  border: none !important;
+  padding: 14px 40px !important;  /* Tăng padding cho to hơn */
+  border-radius: 35px !important;  /* Bo tròn hơn */
+  font-size: 17px !important;  /* Font lớn hơn một chút */
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;  /* Shadow đậm hơn */
+  text-align: center;
+  line-height: 1;
+}
+
+.pip-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+  background: white !important;
+}
+
+.pip-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.pip-icon-btn {
+  background: rgba(255, 255, 255, 0.25) !important;  /* Tăng opacity một chút */
+  color: white !important;
+  border: 2px solid rgba(255, 255, 255, 0.5) !important;  /* Viền rõ hơn */
+  width: 44px !important;  /* Thu nhỏ hơn */
+  height: 44px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0 !important;
+}
+
+.pip-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.4) !important;
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.pip-icon-btn svg {
+  width: 24px !important;
+  height: 24px !important;
+  stroke: white !important;
+  fill: none !important;
+}
+
+/* Picture-in-Picture Button - Main Page */
+.pip-btn-main {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.pip-btn-main:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+/* Picture-in-Picture Button - PiP Window */
 .pip-btn {
   width: 42px;
   height: 42px;

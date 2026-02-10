@@ -67,9 +67,9 @@ const FOOTER_BUTTONS_RIGHT = [
 const IconRenderer = React.memo(({ icon, type }) => {
   if (type === 'svg') {
     return (
-      <img 
-        src={icon} 
-        alt="" 
+      <img
+        src={icon}
+        alt=""
         loading="lazy"
         className="icon-svg"
         width="20"
@@ -77,7 +77,7 @@ const IconRenderer = React.memo(({ icon, type }) => {
       />
     );
   }
-  
+
   return <span className="emoji-icon">{icon}</span>;
 });
 
@@ -149,17 +149,17 @@ const FooterButtonsGroup = React.memo(({ buttons, direction }) => {
     <div className={`footer-${direction}`}>
       {buttons.map(btn => {
         const isSvg = typeof btn.icon === 'string' && (btn.icon.includes('.svg') || btn.icon.startsWith('data:'));
-        
+
         return (
-          <button 
+          <button
             key={btn.id}
             className="footer-btn"
             aria-label={btn.label}
             title={btn.label}
           >
             {isSvg ? (
-              <img 
-                src={btn.icon} 
+              <img
+                src={btn.icon}
                 alt={btn.label}
                 className="footer-btn-icon"
                 loading="lazy"
@@ -184,7 +184,7 @@ const UserDropdownHeader = React.memo(({ onClose }) => {
         <div className="user-dropdown-title">MegaScholar905</div>
         <div className="user-dropdown-subtitle">Guest Account</div>
       </div>
-      <button 
+      <button
         className="user-dropdown-close"
         onClick={onClose}
         aria-label="Close menu"
@@ -202,7 +202,7 @@ export default function PomodoroTimer() {
   const navigate = useNavigate();
   // Thay đổi khởi tạo useTimer để có thể cập nhật thời gian
   const { minutes, seconds, isRunning, toggleTimer, setTime } = useTimer(25);
-  
+
   // States
   const [mode, setMode] = useState('pomodoro');
   const [showSettings, setShowSettings] = useState(false);
@@ -210,10 +210,11 @@ export default function PomodoroTimer() {
   const [currentPreset, setCurrentPreset] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isPiPMode, setIsPiPMode] = useState(false);
-  
+
   // Refs
   const userMenuRef = useRef(null);
-  const videoRef = useRef(null); 
+  const videoRef = useRef(null);
+  const pipWindowRef = useRef(null);
 
   // ========== CLICK OUTSIDE HANDLER ==========
   useEffect(() => {
@@ -231,22 +232,41 @@ export default function PomodoroTimer() {
 
   // ========== PICTURE-IN-PICTURE SETUP ========== 
   useEffect(() => {
-    // Create hidden video element for PiP
-    const video = document.createElement('video');
-    video.muted = true;
-    video.style.display = 'none';
-    videoRef.current = video;
-    document.body.appendChild(video);
-
+    // Cleanup khi component unmount
     return () => {
-      if (videoRef.current) {
-        document.body.removeChild(videoRef.current);
+      if (pipWindowRef.current && !pipWindowRef.current.closed) {
+        pipWindowRef.current.close();
       }
     };
   }, []);
 
+  // Update PiP window content when timer changes
+  useEffect(() => {
+    if (pipWindowRef.current && !pipWindowRef.current.closed) {
+      const pipDoc = pipWindowRef.current.document;
+      const timerElement = pipDoc.getElementById('pip-timer');
+      if (timerElement) {
+        timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+      const playPauseBtn = pipDoc.getElementById('pip-play-pause');
+      if (playPauseBtn) {
+        playPauseBtn.textContent = isRunning ? 'Pause' : 'Start';
+
+        // ⭐ FIX: Gắn lại event listener với state mới
+        // Xóa event listener cũ bằng cách clone node
+        const newBtn = playPauseBtn.cloneNode(true);
+        playPauseBtn.parentNode.replaceChild(newBtn, playPauseBtn);
+
+        // Gắn event listener mới với closure hiện tại
+        newBtn.addEventListener('click', () => {
+          toggleTimer();
+        });
+      }
+    }
+  }, [minutes, seconds, isRunning, toggleTimer]);
+
   // ========== OPTIMIZED HANDLERS (useCallback) ==========
-  
+
   const handleToggleUserMenu = useCallback(() => {
     setShowUserMenu(prev => !prev);
   }, []);
@@ -275,22 +295,22 @@ export default function PomodoroTimer() {
     // Chuyển sang preset tiếp theo
     const nextPreset = (currentPreset + 1) % PRESET_NAMES.length;
     setCurrentPreset(nextPreset);
-    
+
     // Lấy thời gian cho preset mới
     const newTime = PRESET_TIMES[nextPreset];
-    
+
     // Cập nhật timer với thời gian mới
     if (setTime) {
       setTime(newTime);
     }
-    
+
     console.log('Skipped to:', PRESET_NAMES[nextPreset], `(${newTime} minutes)`);
   }, [currentPreset, setTime]);
 
   // Cập nhật handlePresetChange để cũng thay đổi thời gian
   const handlePresetChange = useCallback((index) => {
     setCurrentPreset(index);
-    
+
     // Cập nhật thời gian khi đổi preset
     const newTime = PRESET_TIMES[index];
     if (setTime) {
@@ -300,123 +320,103 @@ export default function PomodoroTimer() {
 
 
 
-// Cập nhật useEffect để vẽ background + timer
-useEffect(() => {
-  const video = document.getElementById('pip-video');
-  if (!video || !document.pictureInPictureElement) return;
+  // Handle toggle PiP với Document Picture-in-Picture API
 
-  const canvas = document.getElementById('pip-canvas');
-  if (!canvas) return;
-
-  const ctx = canvas.getContext('2d');
-  
-  // Tạo image object từ background
-  const bgImage = new Image();
-  bgImage.crossOrigin = 'anonymous';
-  bgImage.src = backgroundImage;
-  
-  bgImage.onload = () => {
-    // Vẽ background image
-    ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-    
-    // Vẽ overlay tối
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Vẽ timer text
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 60px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-    ctx.shadowBlur = 20;
-    ctx.fillText(
-      `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`, 
-      canvas.width / 2, 
-      canvas.height / 2
-    );
-  };
-  
-  // Fallback nếu ảnh chưa load
-  if (bgImage.complete) {
-    bgImage.onload();
-  }
-}, [minutes, seconds]);
-
-// Cập nhật handleTogglePiP để vẽ background lúc khởi tạo
-const handleTogglePiP = useCallback(async () => {
-  if (!document.pictureInPictureEnabled) {
-    alert('Your browser does not support Picture-in-Picture');
-    return;
-  }
-
-  try {
-    if (document.pictureInPictureElement) {
-      await document.exitPictureInPicture();
+  const handleTogglePiP = useCallback(async () => {
+    if (!('documentPictureInPicture' in window)) {
+      alert('Document Picture-in-Picture is not supported in your browser. Please use Chrome 116+');
       return;
     }
 
-    let video = document.getElementById('pip-video');
-    let canvas = document.getElementById('pip-canvas');
-    
-    if (!video) {
-      // Tạo canvas
-      canvas = document.createElement('canvas');
-      canvas.id = 'pip-canvas';
-      canvas.width = 400;
-      canvas.height = 200;
-      
-      // Tạo video
-      video = document.createElement('video');
-      video.id = 'pip-video';
-      video.style.display = 'none';
-      video.muted = true;
-      video.autoplay = true;
-      
-      // Vẽ background + timer lần đầu
-      const ctx = canvas.getContext('2d');
-      const bgImage = new Image();
-      bgImage.crossOrigin = 'anonymous';
-      bgImage.src = backgroundImage;
-      
-      bgImage.onload = () => {
-        // Vẽ background
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-        
-        // Vẽ overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Vẽ timer
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 60px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-        ctx.shadowBlur = 20;
-        ctx.fillText(
-          `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`, 
-          canvas.width / 2,
-          canvas.height / 2
-        );
-      };
-      
-      // Stream canvas sang video
-      const stream = canvas.captureStream(30);
-      video.srcObject = stream;
-      document.body.appendChild(video);
-      document.body.appendChild(canvas);
-      canvas.style.display = 'none';
-    }
-    
-    await video.play();
-    await video.requestPictureInPicture();
-    
-  } catch (error) {
-    console.error('Error Picture-in-Picture:', error);
-    alert('Cannot enable Picture-in-Picture: ' + error.message);
+    try {
+      // Đóng PiP nếu đang mở
+      if (pipWindowRef.current && !pipWindowRef.current.closed) {
+        pipWindowRef.current.close();
+        pipWindowRef.current = null;
+        setIsPiPMode(false);
+        return;
+      }
+
+      // Mở PiP window mới
+      const pipWindow = await window.documentPictureInPicture.requestWindow({
+        width: 450,
+        height: 280,
+      });
+
+      pipWindowRef.current = pipWindow;
+      setIsPiPMode(true);
+
+      // Copy tất cả styles từ main document (bao gồm PomodoroTimer.css)
+      const styleSheets = Array.from(document.styleSheets);
+      styleSheets.forEach((styleSheet) => {
+        try {
+          const cssRules = Array.from(styleSheet.cssRules || [])
+            .map((rule) => rule.cssText)
+            .join('');
+          const style = pipWindow.document.createElement('style');
+          style.textContent = cssRules;
+          pipWindow.document.head.appendChild(style);
+        } catch (e) {
+          const link = pipWindow.document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = styleSheet.href;
+          pipWindow.document.head.appendChild(link);
+        }
+      });
+
+      // Thêm background image inline
+      const pipExtraStyles = pipWindow.document.createElement('style');
+      pipExtraStyles.textContent = `
+  .pip-container {
+    background-image: url('${backgroundImage}') !important;
+    background-size: cover !important;
+    background-position: center !important;
   }
-}, [minutes, seconds]);
+`;
+      pipWindow.document.head.appendChild(pipExtraStyles);
+
+      // Tạo HTML content
+      const pipContainer = pipWindow.document.createElement('div');
+      pipContainer.className = 'pip-container';
+      pipContainer.innerHTML = `
+      <div class="pip-content">
+        <div id="pip-timer" class="pip-timer">
+          ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}
+        </div>
+        <div class="pip-controls">
+          <button id="pip-play-pause" class="pip-btn">
+            ${isRunning ? 'Pause' : 'Start'}
+          </button>
+          <button id="pip-skip" class="pip-icon-btn" title="Skip to next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 4 15 12 5 20 5 4"/>
+              <line x1="19" y1="5" x2="19" y2="19"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+
+      pipWindow.document.body.appendChild(pipContainer);
+
+      // Gắn event listeners
+      const playPauseBtn = pipWindow.document.getElementById('pip-play-pause');
+      const skipBtn = pipWindow.document.getElementById('pip-skip');
+
+      playPauseBtn.addEventListener('click', toggleTimer);
+      skipBtn.addEventListener('click', handleSkipToBreak);
+
+      // Xử lý khi đóng PiP window
+      pipWindow.addEventListener('pagehide', () => {
+        pipWindowRef.current = null;
+        setIsPiPMode(false);
+      });
+
+    } catch (error) {
+      console.error('Error opening Picture-in-Picture:', error);
+      alert('Cannot open Picture-in-Picture: ' + error.message);
+    }
+  }, [minutes, seconds, isRunning, toggleTimer, handleSkipToBreak]);
 
 
 
@@ -463,11 +463,11 @@ const handleTogglePiP = useCallback(async () => {
           <button className="user-menu" aria-label="Enter user's study room">
             User's room
           </button>
-          
+
           {/* User Menu with Dropdown */}
           <div className="user-menu-wrapper" ref={userMenuRef}>
-            <button 
-              onClick={handleToggleUserMenu} 
+            <button
+              onClick={handleToggleUserMenu}
               className="login-nav-btn"
               aria-expanded={showUserMenu}
               aria-haspopup="menu"
@@ -481,17 +481,17 @@ const handleTogglePiP = useCallback(async () => {
               <div className="user-dropdown-menu" role="menu">
                 <UserDropdownHeader onClose={handleCloseUserMenu} />
                 <div className="user-dropdown-divider" />
-                <UserMenuSection 
-                  items={MENU_ITEMS} 
+                <UserMenuSection
+                  items={MENU_ITEMS}
                   onItemClick={handleMenuItemClick}
                 />
-                <UserMenuSection 
-                  items={EXTERNAL_ITEMS} 
+                <UserMenuSection
+                  items={EXTERNAL_ITEMS}
                   onItemClick={handleMenuItemClick}
                 />
-                <UserMenuSection 
+                <UserMenuSection
                   items={FOOTER_ITEMS}
-                  isLast 
+                  isLast
                   onItemClick={handleMenuItemClick}
                 />
               </div>
@@ -503,7 +503,7 @@ const handleTogglePiP = useCallback(async () => {
       {/* Main Content */}
       <div className="timer-content">
         {/* Preset Dots Indicator */}
-        <PresetDots 
+        <PresetDots
           currentPreset={currentPreset}
           onPresetChange={handlePresetChange}
         />
@@ -536,8 +536,8 @@ const handleTogglePiP = useCallback(async () => {
             onClick={handleOpenSettings}
             aria-label="Open settings"
           >
-            <img 
-              src={settingClockIcon} 
+            <img
+              src={settingClockIcon}
               alt="Settings"
               className="settings-icon-img"
               width="24"
@@ -546,8 +546,8 @@ const handleTogglePiP = useCallback(async () => {
           </button>
 
           {/* Start Button */}
-          <button 
-            onClick={toggleTimer} 
+          <button
+            onClick={toggleTimer}
             className="start-btn-large"
             aria-label={isRunning ? 'Pause timer' : 'Start timer'}
           >
@@ -556,14 +556,14 @@ const handleTogglePiP = useCallback(async () => {
 
           {/* Picture-in-Picture Button */}
           <button
-            className="pip-btn"
+            className="pip-btn-main"
             onClick={handleTogglePiP}
             aria-label="Toggle Picture-in-Picture"
             title="Picture-in-Picture"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <rect x="13" y="13" width="6" height="6" rx="1"/>
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <rect x="13" y="13" width="6" height="6" rx="1" />
             </svg>
           </button>
 
@@ -575,8 +575,8 @@ const handleTogglePiP = useCallback(async () => {
             title="Skip to break"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="5 4 15 12 5 20 5 4"/>
-              <line x1="19" y1="5" x2="19" y2="19"/>
+              <polygon points="5 4 15 12 5 20 5 4" />
+              <line x1="19" y1="5" x2="19" y2="19" />
             </svg>
           </button>
         </div>
