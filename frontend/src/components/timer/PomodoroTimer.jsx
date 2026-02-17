@@ -6,7 +6,6 @@ import backgroundImage from '../../assets/background.jpg';
 import SettingsModal from './SettingsModal';
 import { logout } from '../../api/authentication/auth';
 
-
 // SVG Icon imports
 import upgradeIcon from '../../assets/user-menu/gift.svg';
 import profileIcon from '../../assets/user-menu/profile.svg';
@@ -47,6 +46,7 @@ const FOOTER_ITEMS = [
 ];
 
 const PRESET_NAMES = ['Pomodoro', 'Short Break', 'Long Break'];
+const PRESET_TIMES = [25, 5, 10]; // Pomodoro: 25min, Short Break: 5min, Long Break: 10min
 
 const FOOTER_BUTTONS_LEFT = [
   { id: 'cloud', icon: weatherIcon, label: 'Cloud' },
@@ -63,7 +63,6 @@ const FOOTER_BUTTONS_RIGHT = [
 ];
 
 // ========== MEMOIZED COMPONENTS ==========
-// Icon renderer
 const IconRenderer = React.memo(({ icon, type }) => {
   if (type === 'svg') {
     return (
@@ -77,13 +76,10 @@ const IconRenderer = React.memo(({ icon, type }) => {
       />
     );
   }
-
   return <span className="emoji-icon">{icon}</span>;
 });
-
 IconRenderer.displayName = 'IconRenderer';
 
-// Menu item button
 const UserMenuItemComponent = React.memo(({ item, onItemClick }) => {
   const handleClick = useCallback(() => {
     onItemClick(item.id);
@@ -101,10 +97,8 @@ const UserMenuItemComponent = React.memo(({ item, onItemClick }) => {
     </button>
   );
 });
-
 UserMenuItemComponent.displayName = 'UserMenuItemComponent';
 
-// Menu section with divider
 const UserMenuSection = React.memo(({ items, isLast, onItemClick }) => {
   return (
     <>
@@ -121,10 +115,8 @@ const UserMenuSection = React.memo(({ items, isLast, onItemClick }) => {
     </>
   );
 });
-
 UserMenuSection.displayName = 'UserMenuSection';
 
-// Preset dots indicator
 const PresetDots = React.memo(({ currentPreset, onPresetChange }) => {
   return (
     <div className="preset-dots">
@@ -140,16 +132,13 @@ const PresetDots = React.memo(({ currentPreset, onPresetChange }) => {
     </div>
   );
 });
-
 PresetDots.displayName = 'PresetDots';
 
-// Footer buttons group
 const FooterButtonsGroup = React.memo(({ buttons, direction }) => {
   return (
     <div className={`footer-${direction}`}>
       {buttons.map(btn => {
         const isSvg = typeof btn.icon === 'string' && (btn.icon.includes('.svg') || btn.icon.startsWith('data:'));
-
         return (
           <button
             key={btn.id}
@@ -173,10 +162,8 @@ const FooterButtonsGroup = React.memo(({ buttons, direction }) => {
     </div>
   );
 });
-
 FooterButtonsGroup.displayName = 'FooterButtonsGroup';
 
-// User dropdown header
 const UserDropdownHeader = React.memo(({ onClose }) => {
   return (
     <div className="user-dropdown-header">
@@ -194,13 +181,11 @@ const UserDropdownHeader = React.memo(({ onClose }) => {
     </div>
   );
 });
-
 UserDropdownHeader.displayName = 'UserDropdownHeader';
-const PRESET_TIMES = [25, 5, 10]; // Pomodoro: 25min, Short Break: 5min, Long Break: 10min
+
 // ========== MAIN COMPONENT ==========
 export default function PomodoroTimer() {
   const navigate = useNavigate();
-  // Thay đổi khởi tạo useTimer để có thể cập nhật thời gian
   const { minutes, seconds, isRunning, toggleTimer, setTime } = useTimer(25);
 
   // States
@@ -232,7 +217,6 @@ export default function PomodoroTimer() {
 
   // ========== PICTURE-IN-PICTURE SETUP ========== 
   useEffect(() => {
-    // Cleanup khi component unmount
     return () => {
       if (pipWindowRef.current && !pipWindowRef.current.closed) {
         pipWindowRef.current.close();
@@ -240,7 +224,6 @@ export default function PomodoroTimer() {
     };
   }, []);
 
-  // Update PiP window content when timer changes
   useEffect(() => {
     if (pipWindowRef.current && !pipWindowRef.current.closed) {
       const pipDoc = pipWindowRef.current.document;
@@ -251,13 +234,8 @@ export default function PomodoroTimer() {
       const playPauseBtn = pipDoc.getElementById('pip-play-pause');
       if (playPauseBtn) {
         playPauseBtn.textContent = isRunning ? 'Pause' : 'Start';
-
-        // ⭐ FIX: Gắn lại event listener với state mới
-        // Xóa event listener cũ bằng cách clone node
         const newBtn = playPauseBtn.cloneNode(true);
         playPauseBtn.parentNode.replaceChild(newBtn, playPauseBtn);
-
-        // Gắn event listener mới với closure hiện tại
         newBtn.addEventListener('click', () => {
           toggleTimer();
         });
@@ -265,8 +243,7 @@ export default function PomodoroTimer() {
     }
   }, [minutes, seconds, isRunning, toggleTimer]);
 
-  // ========== OPTIMIZED HANDLERS (useCallback) ==========
-
+  // ========== HANDLERS ==========
   const handleToggleUserMenu = useCallback(() => {
     setShowUserMenu(prev => !prev);
   }, []);
@@ -290,37 +267,38 @@ export default function PomodoroTimer() {
     setShowUserMenu(false);
   }, [navigate]);
 
-
   const handleSkipToBreak = useCallback(() => {
-    // Chuyển sang preset tiếp theo
     const nextPreset = (currentPreset + 1) % PRESET_NAMES.length;
     setCurrentPreset(nextPreset);
-
-    // Lấy thời gian cho preset mới
     const newTime = PRESET_TIMES[nextPreset];
-
-    // Cập nhật timer với thời gian mới
     if (setTime) {
       setTime(newTime);
     }
-
     console.log('Skipped to:', PRESET_NAMES[nextPreset], `(${newTime} minutes)`);
   }, [currentPreset, setTime]);
 
-  // Cập nhật handlePresetChange để cũng thay đổi thời gian
-  const handlePresetChange = useCallback((index) => {
+  // HÀM XỬ LÝ THAY ĐỔI PRESET TỪ DOTS (click vào chấm tròn)
+  const handlePresetDotChange = useCallback((index) => {
     setCurrentPreset(index);
-
-    // Cập nhật thời gian khi đổi preset
     const newTime = PRESET_TIMES[index];
     if (setTime) {
       setTime(newTime);
     }
+    console.log('Preset dot changed to:', PRESET_NAMES[index], `(${newTime} minutes)`);
   }, [setTime]);
 
-
-
-  // Handle toggle PiP với Document Picture-in-Picture API
+  // ⭐ HÀM XỬ LÝ THAY ĐỔI PRESET TỪ MODAL SETTINGS
+  const handleSettingsPresetChange = useCallback((presetConfig) => {
+    console.log('Settings preset changed to:', presetConfig.presetName);
+    
+    // Cập nhật thời gian từ modal settings
+    if (setTime) {
+      setTime(presetConfig.focusTime);
+    }
+    
+    // Đóng modal
+    setShowSettings(false);
+  }, [setTime]);
 
   const handleTogglePiP = useCallback(async () => {
     if (!('documentPictureInPicture' in window)) {
@@ -329,7 +307,6 @@ export default function PomodoroTimer() {
     }
 
     try {
-      // Đóng PiP nếu đang mở
       if (pipWindowRef.current && !pipWindowRef.current.closed) {
         pipWindowRef.current.close();
         pipWindowRef.current = null;
@@ -337,7 +314,6 @@ export default function PomodoroTimer() {
         return;
       }
 
-      // Mở PiP window mới
       const pipWindow = await window.documentPictureInPicture.requestWindow({
         width: 450,
         height: 280,
@@ -346,7 +322,6 @@ export default function PomodoroTimer() {
       pipWindowRef.current = pipWindow;
       setIsPiPMode(true);
 
-      // Copy tất cả styles từ main document (bao gồm PomodoroTimer.css)
       const styleSheets = Array.from(document.styleSheets);
       styleSheets.forEach((styleSheet) => {
         try {
@@ -364,49 +339,45 @@ export default function PomodoroTimer() {
         }
       });
 
-      // Thêm background image inline
       const pipExtraStyles = pipWindow.document.createElement('style');
       pipExtraStyles.textContent = `
-  .pip-container {
-    background-image: url('${backgroundImage}') !important;
-    background-size: cover !important;
-    background-position: center !important;
-  }
-`;
+        .pip-container {
+          background-image: url('${backgroundImage}') !important;
+          background-size: cover !important;
+          background-position: center !important;
+        }
+      `;
       pipWindow.document.head.appendChild(pipExtraStyles);
 
-      // Tạo HTML content
       const pipContainer = pipWindow.document.createElement('div');
       pipContainer.className = 'pip-container';
       pipContainer.innerHTML = `
-      <div class="pip-content">
-        <div id="pip-timer" class="pip-timer">
-          ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}
+        <div class="pip-content">
+          <div id="pip-timer" class="pip-timer">
+            ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}
+          </div>
+          <div class="pip-controls">
+            <button id="pip-play-pause" class="pip-btn">
+              ${isRunning ? 'Pause' : 'Start'}
+            </button>
+            <button id="pip-skip" class="pip-icon-btn" title="Skip to next">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 4 15 12 5 20 5 4"/>
+                <line x1="19" y1="5" x2="19" y2="19"/>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div class="pip-controls">
-          <button id="pip-play-pause" class="pip-btn">
-            ${isRunning ? 'Pause' : 'Start'}
-          </button>
-          <button id="pip-skip" class="pip-icon-btn" title="Skip to next">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 4 15 12 5 20 5 4"/>
-              <line x1="19" y1="5" x2="19" y2="19"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    `;
+      `;
 
       pipWindow.document.body.appendChild(pipContainer);
 
-      // Gắn event listeners
       const playPauseBtn = pipWindow.document.getElementById('pip-play-pause');
       const skipBtn = pipWindow.document.getElementById('pip-skip');
 
       playPauseBtn.addEventListener('click', toggleTimer);
       skipBtn.addEventListener('click', handleSkipToBreak);
 
-      // Xử lý khi đóng PiP window
       pipWindow.addEventListener('pagehide', () => {
         pipWindowRef.current = null;
         setIsPiPMode(false);
@@ -417,8 +388,6 @@ export default function PomodoroTimer() {
       alert('Cannot open Picture-in-Picture: ' + error.message);
     }
   }, [minutes, seconds, isRunning, toggleTimer, handleSkipToBreak]);
-
-
 
   const handleTaskChange = useCallback((e) => {
     setTask(e.target.value);
@@ -435,17 +404,13 @@ export default function PomodoroTimer() {
   // ========== RENDER ==========
   return (
     <div className="timer-container">
-      {/* Background Image */}
       <div
         className="timer-background"
         style={{ backgroundImage: `url(${backgroundImage})` }}
         role="presentation"
       />
-
-      {/* Dark Overlay */}
       <div className="timer-overlay" role="presentation" />
 
-      {/* Header */}
       <header className="timer-header">
         <div className="logo">
           <span className="logo-icon" aria-hidden="true">🎯</span>
@@ -464,7 +429,6 @@ export default function PomodoroTimer() {
             User's room
           </button>
 
-          {/* User Menu with Dropdown */}
           <div className="user-menu-wrapper" ref={userMenuRef}>
             <button
               onClick={handleToggleUserMenu}
@@ -476,7 +440,6 @@ export default function PomodoroTimer() {
               MN
             </button>
 
-            {/* Dropdown Menu */}
             {showUserMenu && (
               <div className="user-dropdown-menu" role="menu">
                 <UserDropdownHeader onClose={handleCloseUserMenu} />
@@ -500,22 +463,19 @@ export default function PomodoroTimer() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="timer-content">
-        {/* Preset Dots Indicator */}
+        {/* SỬA: Truyền handlePresetDotChange thay vì handlePresetChange */}
         <PresetDots
           currentPreset={currentPreset}
-          onPresetChange={handlePresetChange}
+          onPresetChange={handlePresetDotChange}
         />
 
-        {/* Timer Display */}
         <div className="timer-display">
           <h1 className="time">
             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
           </h1>
         </div>
 
-        {/* Task Input */}
         <div className="task-input-wrapper">
           <span className="task-icon" aria-hidden="true">☰</span>
           <input
@@ -528,9 +488,7 @@ export default function PomodoroTimer() {
           />
         </div>
 
-        {/* Control Buttons */}
         <div className="control-section">
-          {/* Settings Icon */}
           <button
             className="settings-icon-btn"
             onClick={handleOpenSettings}
@@ -545,7 +503,6 @@ export default function PomodoroTimer() {
             />
           </button>
 
-          {/* Start Button */}
           <button
             onClick={toggleTimer}
             className="start-btn-large"
@@ -554,7 +511,6 @@ export default function PomodoroTimer() {
             {isRunning ? 'Pause' : 'Start'}
           </button>
 
-          {/* Picture-in-Picture Button */}
           <button
             className="pip-btn-main"
             onClick={handleTogglePiP}
@@ -567,7 +523,6 @@ export default function PomodoroTimer() {
             </svg>
           </button>
 
-          {/* Skip Button */}
           <button
             className="skip-btn"
             onClick={handleSkipToBreak}
@@ -582,15 +537,17 @@ export default function PomodoroTimer() {
         </div>
       </div>
 
-      {/* Footer Controls */}
       <footer className="timer-footer">
         <FooterButtonsGroup buttons={FOOTER_BUTTONS_LEFT} direction="left" />
         <FooterButtonsGroup buttons={FOOTER_BUTTONS_RIGHT} direction="right" />
       </footer>
 
-      {/* Settings Modal */}
+      {/* SỬA: Truyền handleSettingsPresetChange */}
       {showSettings && (
-        <SettingsModal onClose={handleCloseSettings} />
+        <SettingsModal 
+          onClose={handleCloseSettings}
+          onPresetChange={handleSettingsPresetChange}
+        />
       )}
     </div>
   );
