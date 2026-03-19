@@ -18,14 +18,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class StudyTimeServiceImpl  implements IStudyTimeService {
     private final StudyTimeRepository studyTimeRepository;
     private final UserRepository userRepository;
-
+    private static final ZoneId STREAK_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     /**
      * Lưu một study session
@@ -92,14 +99,62 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
         Integer totalPomodoros = studyTimeRepository.getTotalPomodorosByUserId(userId);
         //tinh trung binh
         Double avgDuration = totalSessions > 0 ? (totalTime / totalSessions) : 0.0;
+        
+        List<LocalDate> activeDays = studyTimeRepository.findActiveStudyDaysByUserId(userId)
+            .stream()
+            .map(Date::toLocalDate)
+            .collect(Collectors.toList());
+
+        StreakResult streak = calculateStreak(activeDays, LocalDate.now(STREAK_ZONE));
+
         return new StatsResponse(
                 totalTime,
                 totalSessions,
                 avgDuration,
-                totalPomodoros
+                totalPomodoros,
+                streak.currentStreak(),
+                streak.bestStreak()
         );
     }
+    private StreakResult calculateStreak(List<LocalDate> orderedActiveDays, LocalDate today) {
+    if (orderedActiveDays == null || orderedActiveDays.isEmpty()) {
+        return new StreakResult(0, 0);
+    }
 
+    int bestStreak = 1;
+    int running = 1;
+
+    for (int i = 1; i < orderedActiveDays.size(); i++) {
+        LocalDate prev = orderedActiveDays.get(i - 1);
+        LocalDate curr = orderedActiveDays.get(i);
+
+        if (curr.equals(prev.plusDays(1))) {
+            running++;
+        } else {
+            running = 1;
+        }
+        bestStreak = Math.max(bestStreak, running);
+    }
+
+    Set<LocalDate> daySet = new HashSet<>(orderedActiveDays);
+
+    LocalDate cursor = null;
+    if (daySet.contains(today)) {
+        cursor = today;
+    } else if (daySet.contains(today.minusDays(1))) {
+        cursor = today.minusDays(1);
+    }
+
+    int currentStreak = 0;
+    while (cursor != null && daySet.contains(cursor)) {
+        currentStreak++;
+        cursor = cursor.minusDays(1);
+    }
+
+    return new StreakResult(currentStreak, bestStreak);
+}
+
+    private record StreakResult(int currentStreak, int bestStreak) {}
 
     private SessionResponse toSessionResponse(StudyTime studyTime) {
         return new SessionResponse(
@@ -111,4 +166,6 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
                 studyTime.getUser().getName()
         );
     }
+
+    
 }

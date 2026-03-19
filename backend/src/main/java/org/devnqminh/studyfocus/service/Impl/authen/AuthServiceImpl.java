@@ -3,14 +3,18 @@ package org.devnqminh.studyfocus.service.Impl.authen;
 import org.devnqminh.studyfocus.dto.request.authentication.LoginRequest;
 import org.devnqminh.studyfocus.dto.request.authentication.RegisterRequest;
 import org.devnqminh.studyfocus.dto.response.authentication.LoginResponse;
+import org.devnqminh.studyfocus.dto.response.user.UserProfileResponse;
 import org.devnqminh.studyfocus.model.User;
 import org.devnqminh.studyfocus.repository.UserRepository;
 import org.devnqminh.studyfocus.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthServiceImpl implements IAuthService {
@@ -53,6 +57,32 @@ public class AuthServiceImpl implements IAuthService {
         user.setCreatedAt(Instant.now());
         user.setStatus("ACTIVE");
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(Long userId) {
+        User user = userRepository.findByIdWithTimes(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return UserProfileResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .name(user.getName())
+                .email(user.getEmail())
+                .location(user.getLocation())
+                .image(user.getImage())
+                .createdAt(user.getCreatedAt())
+                .status(user.getStatus())
+                .times(user.getTimes().stream()
+                        .map(time -> UserProfileResponse.StudyTimeDTO.builder()
+                                .id(time.getId())
+                                .duration(time.getDuration())
+                                .breakTime(time.getBreakTime())
+                                .count(time.getCount())
+                                .build())
+                        .collect(Collectors.toList()))
+                .build();
     }
 
 }

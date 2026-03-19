@@ -1,5 +1,5 @@
 // API service để gọi backend
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 // 2. Tạo object chứa các function gọi API
 export const studySessionAPI = {//tên đối tượng chứa các function
     // ============ GET ALL SESSIONS ============
@@ -8,7 +8,6 @@ export const studySessionAPI = {//tên đối tượng chứa các function
         const response = await fetch(`${API_URL}/study-sessions`, {
             credentials: 'include',
         });
-
         // Kiểm tra response có OK không (status 200-299)
         if (!response.ok) {
             throw new Error('Lỗi khi lấy danh sách sessions');
@@ -20,12 +19,12 @@ export const studySessionAPI = {//tên đối tượng chứa các function
     createSession: async (sessionData) => {
         // sessionData = { duration: 25, breakTime: 5, count: 1, mode: "pomodoro" }
         const response = await fetch(`${API_URL}/study-sessions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', //tell backend I sent json
-            },
-            credentials: 'include',
-            body: JSON.stringify(sessionData),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(sessionData),
         });
         if (!response.ok) {
             throw new Error('Lỗi khi tạo session');
@@ -34,16 +33,32 @@ export const studySessionAPI = {//tên đối tượng chứa các function
     },
     // ============ GET STATISTICS ============
     getStats: async () => {
-        const response = await fetch(`${API_URL}/study-sessions/stats`, {
-            credentials: 'include',
-        });
-        
-        if (!response.ok) {
-            throw new Error('Lỗi khi lấy thống kê');
-        }
+    const response = await fetch(`${API_URL}/study-sessions/stats`, {
+        credentials: 'include',
+    });
 
-        return response.json();
+    if (!response.ok) {
+        throw new Error('Lỗi khi lấy thống kê');
+    }
+
+    return response.json(); 
     },
+
+    createSession: async (sessionData) => {
+    const response = await fetch(`${API_URL}/study-sessions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(sessionData),
+    });
+    if (!response.ok) {
+        throw new Error('Lỗi khi tạo session');
+    }
+    return response.json();
+    },
+    
     // ============ DELETE SESSION ============
     deleteSession: async (id) => {
         const response = await fetch(`${API_URL}/study-sessions/${id}`, {

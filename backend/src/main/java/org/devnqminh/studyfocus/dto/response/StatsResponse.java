@@ -4,6 +4,8 @@ public record StatsResponse(
          Double totalStudyTime,
          Long totalSessions,
          Double averageSessionDuration,
-         Integer totalPomodoros
+         Integer totalPomodoros,
+         Integer currentStreak,
+         Integer bestStreak
 ) {
 }

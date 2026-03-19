@@ -5,6 +5,7 @@ import useTimer from '../../hooks/userTimer';
 import backgroundImage from '../../assets/background.jpg';
 import SettingsModal from './SettingsModal';
 import { logout } from '../../api/authentication/auth';
+import ProfilePage from '../profile/UserProfile';
 
 
 // SVG Icon imports
@@ -24,6 +25,7 @@ import chattingIcon from '../../assets/ground/chatting.svg';
 import findUser from '../../assets/ground/finduser.svg';
 import focusLightning from '../../assets/ground/lightning.svg';
 import clockIcon from '../../assets/ground/clock.svg';
+
 
 // ========== STATIC CONFIGS ==========
 const MENU_ITEMS = [
@@ -196,6 +198,7 @@ const UserDropdownHeader = React.memo(({ onClose }) => {
 
 UserDropdownHeader.displayName = 'UserDropdownHeader';
 
+
 // ========== MAIN COMPONENT ==========
 export default function PomodoroTimer() {
   const navigate = useNavigate();
@@ -208,7 +211,7 @@ export default function PomodoroTimer() {
   const [currentPreset, setCurrentPreset] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
-
+  const [showProfile, setShowProfile] = useState(false);
   // ========== CLICK OUTSIDE HANDLER ==========
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -223,6 +226,7 @@ export default function PomodoroTimer() {
     }
   }, [showUserMenu]);
 
+  
   // ========== OPTIMIZED HANDLERS (useCallback) ==========
   
   const handleToggleUserMenu = useCallback(() => {
@@ -233,20 +237,28 @@ export default function PomodoroTimer() {
     setShowUserMenu(false);
   }, []);
 
+  const handleOpenProfile = useCallback(() => {
+    setShowProfile(true);
+    setShowUserMenu(false); 
+  }, []);
+
   const handleMenuItemClick = useCallback(async (itemId) => {
-  if (itemId === 'logout') {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      alert('Logout failed');
+    if (itemId === 'profile') {
+      setShowProfile(true); 
+      setShowUserMenu(false);
+    } else if (itemId === 'logout') {
+      try {
+        await logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Logout failed');
+      }
+    } else {
+      console.log('Menu item clicked:', itemId);
     }
-  } else {
-    console.log('Menu item clicked:', itemId);
-  }
-  setShowUserMenu(false);
-}, [navigate]);
+    setShowUserMenu(false);
+  }, [navigate]);
 
   const handlePresetChange = useCallback((index) => {
     setCurrentPreset(index);
@@ -406,6 +418,9 @@ export default function PomodoroTimer() {
       {/* Settings Modal */}
       {showSettings && (
         <SettingsModal onClose={handleCloseSettings} />
+      )}
+      {showProfile && (
+        <ProfilePage onClose={() => setShowProfile(false)} />
       )}
     </div>
   );

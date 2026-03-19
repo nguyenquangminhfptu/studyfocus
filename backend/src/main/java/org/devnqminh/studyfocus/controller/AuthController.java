@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import org.devnqminh.studyfocus.dto.request.authentication.LoginRequest;
 import org.devnqminh.studyfocus.dto.request.authentication.RegisterRequest;
 import org.devnqminh.studyfocus.dto.response.authentication.LoginResponse;
+import org.devnqminh.studyfocus.dto.response.user.UserProfileResponse;
 import org.devnqminh.studyfocus.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,11 +39,14 @@ public class AuthController {
     public ResponseEntity<?> me(HttpSession session) {
         Long userId = (Long) session.getAttribute("USER_ID");
         String username = (String) session.getAttribute("USERNAME");
-        if(userId==null || username==null) {
+
+        if(userId == null || username == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated");
         }
-        return ResponseEntity.ok(new LoginResponse("session", username, userId));
 
+        UserProfileResponse response = authService.getUserProfile(userId);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
