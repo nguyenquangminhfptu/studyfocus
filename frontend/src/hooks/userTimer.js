@@ -6,7 +6,7 @@
 // Mở rộng tính năng dễ dàng.
 
 //quản lý trạng thái và logic của bộ đếm thời gian
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export default function useTimer(initialMinutes = 25){
   const [minutes, setMinutes] = useState(initialMinutes);
@@ -36,6 +36,12 @@ export default function useTimer(initialMinutes = 25){
         return () => clearInterval(intervalRef.current); // Cleanup
     }, [isRunning, minutes, seconds]);
 
+    const setTime = useCallback((newMinutes) => {
+    setMinutes(newMinutes);
+    setSeconds(0);
+    setIsRunning(false); // Dừng timer khi chuyển preset
+  }, []);
+
     const toggleTimer = () => setIsRunning(!isRunning);
     const resetTimer = () => {
         setIsRunning(false);
@@ -43,5 +49,5 @@ export default function useTimer(initialMinutes = 25){
         setSeconds(0);
     };
 
-    return { minutes, seconds, isRunning, toggleTimer, resetTimer };
+      return { minutes, seconds, isRunning, toggleTimer, resetTimer, setTime };
 }
