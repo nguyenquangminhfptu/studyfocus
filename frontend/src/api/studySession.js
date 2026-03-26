@@ -8,11 +8,9 @@ export const studySessionAPI = {//tên đối tượng chứa các function
         const response = await fetch(`${API_URL}/study-sessions`, {
             credentials: 'include',
         });
-        // Kiểm tra response có OK không (status 200-299)
         if (!response.ok) {
             throw new Error('Lỗi khi lấy danh sách sessions');
         }
-        // Chuyển response thành JSON
         return response.json();
     },
     // ============ CREATE SESSION ============
@@ -41,10 +39,10 @@ export const studySessionAPI = {//tên đối tượng chứa các function
         throw new Error('Lỗi khi lấy thống kê');
     }
 
-    return response.json(); 
+    return response.json();
     },
 
-    
+
     // ============ DELETE SESSION ============
     deleteSession: async (id) => {
         const response = await fetch(`${API_URL}/study-sessions/${id}`, {
