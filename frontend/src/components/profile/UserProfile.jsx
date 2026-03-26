@@ -30,7 +30,7 @@ export default function ProfilePage({ onClose }) {
           bestStreak: stat.bestStreak ?? 0,
           totalHours: Math.round(stat.totalStudyTime ?? 0),
           pomodorosCompleted: stat.totalPomodoros ?? 0,
-          thisWeek: 0,
+          thisWeek: stat.thisweekPomodoros ?? stat.thisWeekPomodoros ?? 0,
           dailyAverage: '0.0',
         });
       } catch (statsError) {

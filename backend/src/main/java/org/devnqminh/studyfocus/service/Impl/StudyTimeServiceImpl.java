@@ -104,16 +104,20 @@ public class StudyTimeServiceImpl  implements IStudyTimeService {
             .stream()
             .map(Date::toLocalDate)
             .collect(Collectors.toList());
-
+        //tính chuỗi
         StreakResult streak = calculateStreak(activeDays, LocalDate.now(STREAK_ZONE));
-
+        // tính pomodoros tuần này
+        Integer thisWeekPomodoros = Optional
+            .ofNullable(studyTimeRepository.getThisWeekPomodorosByUserId(userId))
+            .orElse(0);
         return new StatsResponse(
                 totalTime,
                 totalSessions,
                 avgDuration,
                 totalPomodoros,
                 streak.currentStreak(),
-                streak.bestStreak()
+                streak.bestStreak(),
+                thisWeekPomodoros
         );
     }
     private StreakResult calculateStreak(List<LocalDate> orderedActiveDays, LocalDate today) {

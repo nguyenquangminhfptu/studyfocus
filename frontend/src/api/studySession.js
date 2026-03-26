@@ -44,20 +44,6 @@ export const studySessionAPI = {//tên đối tượng chứa các function
     return response.json(); 
     },
 
-    createSession: async (sessionData) => {
-    const response = await fetch(`${API_URL}/study-sessions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(sessionData),
-    });
-    if (!response.ok) {
-        throw new Error('Lỗi khi tạo session');
-    }
-    return response.json();
-    },
     
     // ============ DELETE SESSION ============
     deleteSession: async (id) => {

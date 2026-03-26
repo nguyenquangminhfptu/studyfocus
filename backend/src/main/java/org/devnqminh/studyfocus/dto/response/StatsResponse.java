@@ -6,6 +6,7 @@ public record StatsResponse(
          Double averageSessionDuration,
          Integer totalPomodoros,
          Integer currentStreak,
-         Integer bestStreak
+         Integer bestStreak,
+         Integer thisweekPomodoros
 ) {
 }
