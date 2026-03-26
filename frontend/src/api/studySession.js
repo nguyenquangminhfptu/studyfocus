@@ -1,10 +1,8 @@
 // API service để gọi backend
 const API_URL = import.meta.env.VITE_API_URL || '/api';
-// 2. Tạo object chứa các function gọi API
-export const studySessionAPI = {//tên đối tượng chứa các function
-    // ============ GET ALL SESSIONS ============
-    getAllSessions: async () => {//arrow function bất đồng bộ(chờ api trả về, chờ đợi mà k làm treo ứng dụng)
-        // fetch() = gọi API (giống curl trong terminal)
+
+export const studySessionAPI = {
+    getAllSessions: async () => {
         const response = await fetch(`${API_URL}/study-sessions`, {
             credentials: 'include',
         });
@@ -13,48 +11,40 @@ export const studySessionAPI = {//tên đối tượng chứa các function
         }
         return response.json();
     },
-    // ============ CREATE SESSION ============
+
     createSession: async (sessionData) => {
-        // sessionData = { duration: 25, breakTime: 5, count: 1, mode: "pomodoro" }
         const response = await fetch(`${API_URL}/study-sessions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(sessionData),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(sessionData),
         });
         if (!response.ok) {
             throw new Error('Lỗi khi tạo session');
         }
         return response.json();
     },
-    // ============ GET STATISTICS ============
+
     getStats: async () => {
-    const response = await fetch(`${API_URL}/study-sessions/stats`, {
-        credentials: 'include',
-    });
-
-    if (!response.ok) {
-        throw new Error('Lỗi khi lấy thống kê');
-    }
-
-    return response.json();
+        const response = await fetch(`${API_URL}/study-sessions/stats`, {
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            throw new Error('Lỗi khi lấy thống kê');
+        }
+        return response.json(); 
     },
-
-
-    // ============ DELETE SESSION ============
+    
     deleteSession: async (id) => {
         const response = await fetch(`${API_URL}/study-sessions/${id}`, {
             method: 'DELETE',
             credentials: 'include',
         });
-
         if (!response.ok) {
             throw new Error('Lỗi khi xóa session');
         }
-
-        // DELETE trả về 204 No Content nên không có .json()
         return;
     }
 };
