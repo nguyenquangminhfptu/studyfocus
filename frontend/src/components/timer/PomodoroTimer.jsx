@@ -6,6 +6,7 @@ import backgroundImage from '../../assets/background.jpg';
 import SettingsModal from './SettingsModal';
 import { logout } from '../../api/authentication/auth';
 import ProfilePage from '../profile/UserProfile';
+import { studySessionAPI } from '../../api/studySession';
 
 // SVG Icon imports
 import upgradeIcon from '../../assets/user-menu/gift.svg';
@@ -249,6 +250,32 @@ export default function PomodoroTimer() {
       }
     }
   }, [minutes, seconds, isRunning, toggleTimer]);
+
+   // ========== AUTO SAVE SESSION WHEN TIMER COMPLETES ==========
+  useEffect(() => {
+    // Khi timer về 00:00 (minutes === 0 && seconds === 0) và không chạy
+    if (minutes === 0 && seconds === 0 && !isRunning && currentPreset === 0) {
+      // Chỉ lưu khi là phiên Pomodoro (currentPreset === 0)
+      const saveSession = async () => {
+        try {
+          await studySessionAPI.createSession({
+            duration: PRESET_TIMES[0],      // 25 phút (Pomodoro)
+            breakTime: PRESET_TIMES[1],     // 5 phút (Short break)
+            count: 1,                       // 1 pomodoro
+            mode: 'pomodoro'
+          });
+          console.log('✅ Session saved to backend');
+          // Thêm thông báo hoặc tự chuyển sang phiên tiếp theo
+           handleSkipToBreak(); // Bỏ comment nếu muốn tự chuyển sang break
+        } catch (error) {
+          console.error('❌ Failed to save session:', error);
+        }
+      };
+      
+      saveSession();
+    }
+  }, [minutes, seconds, isRunning, currentPreset]);
+
 
   // ========== HANDLERS ==========
   const handleToggleUserMenu = useCallback(() => {
