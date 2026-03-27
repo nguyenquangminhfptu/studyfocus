@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './PomodoroTimer.css';
 import useTimer from '../../hooks/userTimer';
 import backgroundImage from '../../assets/background.jpg';
-import SettingsModal from './SettingsModal';
+import SettingsModal, { PRESETS } from './SettingsModal';
 import { logout } from '../../api/authentication/auth';
 import ProfilePage from '../profile/UserProfile';
 import { studySessionAPI } from '../../api/studySession';
@@ -49,7 +49,7 @@ const FOOTER_ITEMS = [
 ];
 
 const PRESET_NAMES = ['Pomodoro', 'Short Break', 'Long Break'];
-const PRESET_TIMES = [25, 5, 10]; // Pomodoro: 25min, Short Break: 5min, Long Break: 10min
+const DEFAULT_PRESET_TIMES = [PRESETS[0].focus, PRESETS[0].short, PRESETS[0].long];
 
 const FOOTER_BUTTONS_LEFT = [
   { id: 'cloud', icon: weatherIcon, label: 'Cloud' },
@@ -190,13 +190,14 @@ UserDropdownHeader.displayName = 'UserDropdownHeader';
 // ========== MAIN COMPONENT ==========
 export default function PomodoroTimer() {
   const navigate = useNavigate();
-  const { minutes, seconds, isRunning, toggleTimer, setTime } = useTimer(25);
+  const { minutes, seconds, isRunning, toggleTimer, setTime } = useTimer(DEFAULT_PRESET_TIMES[0]);
 
   // States
   const [mode, setMode] = useState('pomodoro');
   const [showSettings, setShowSettings] = useState(false);
   const [task, setTask] = useState('');
   const [currentPreset, setCurrentPreset] = useState(0);
+  const [presetTimes, setPresetTimes] = useState(DEFAULT_PRESET_TIMES);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isPiPMode, setIsPiPMode] = useState(false);
 
@@ -259,22 +260,22 @@ export default function PomodoroTimer() {
       const saveSession = async () => {
         try {
           await studySessionAPI.createSession({
-            duration: PRESET_TIMES[0],      // 25 phút (Pomodoro)
-            breakTime: PRESET_TIMES[1],     // 5 phút (Short break)
+            duration: presetTimes[0],       // lấy theo preset hiện tại
+            breakTime: presetTimes[1],      // lấy theo preset hiện tại
             count: 1,                       // 1 pomodoro
-            mode: 'pomodoro'
+            mode
           });
-          console.log('✅ Session saved to backend');
+          console.log('Session saved to backend');
           // Thêm thông báo hoặc tự chuyển sang phiên tiếp theo
            handleSkipToBreak(); // Bỏ comment nếu muốn tự chuyển sang break
         } catch (error) {
-          console.error('❌ Failed to save session:', error);
+          console.error('Failed to save session:', error);
         }
       };
       
       saveSession();
     }
-  }, [minutes, seconds, isRunning, currentPreset]);
+  }, [minutes, seconds, isRunning, currentPreset, presetTimes, mode]);
 
 
   // ========== HANDLERS ==========
@@ -317,35 +318,50 @@ const handleMenuItemClick = useCallback(async (itemId) => {
   const handleSkipToBreak = useCallback(() => {
     const nextPreset = (currentPreset + 1) % PRESET_NAMES.length;
     setCurrentPreset(nextPreset);
-    const newTime = PRESET_TIMES[nextPreset];
+    const newTime = presetTimes[nextPreset];
     if (setTime) {
       setTime(newTime);
     }
     console.log('Skipped to:', PRESET_NAMES[nextPreset], `(${newTime} minutes)`);
-  }, [currentPreset, setTime]);
+  }, [currentPreset, presetTimes, setTime]);
+
+  const handleSkipBreakToPomodoro = useCallback(() => {
+    setCurrentPreset(0);
+    if (setTime) {
+      setTime(presetTimes[0]);
+    }
+    console.log('Break skipped: back to Pomodoro');
+  }, [presetTimes, setTime]);
 
   // HÀM XỬ LÝ THAY ĐỔI PRESET TỪ DOTS (click vào chấm tròn)
   const handlePresetDotChange = useCallback((index) => {
     setCurrentPreset(index);
-    const newTime = PRESET_TIMES[index];
+    const newTime = presetTimes[index];
     if (setTime) {
       setTime(newTime);
     }
     console.log('Preset dot changed to:', PRESET_NAMES[index], `(${newTime} minutes)`);
-  }, [setTime]);
+  }, [presetTimes, setTime]);
 
   // ⭐ HÀM XỬ LÝ THAY ĐỔI PRESET TỪ MODAL SETTINGS
   const handleSettingsPresetChange = useCallback((presetConfig) => {
     console.log('Settings preset changed to:', presetConfig.presetName);
 
+    const nextPresetTimes = [
+      presetConfig.focusTime,
+      presetConfig.shortBreak,
+      presetConfig.longBreak,
+    ];
+    setPresetTimes(nextPresetTimes);
+
     // Cập nhật thời gian từ modal settings
     if (setTime) {
-      setTime(presetConfig.focusTime);
+      setTime(nextPresetTimes[currentPreset]);
     }
 
     // Đóng modal
     setShowSettings(false);
-  }, [setTime]);
+  }, [currentPreset, setTime]);
 
   const handleTogglePiP = useCallback(async () => {
     if (!('documentPictureInPicture' in window)) {
@@ -447,6 +463,8 @@ const handleMenuItemClick = useCallback(async (itemId) => {
   const handleCloseSettings = useCallback(() => {
     setShowSettings(false);
   }, []);
+
+  const isBreakMode = currentPreset !== 0;
 
   // ========== RENDER ==========
   return (
@@ -551,11 +569,15 @@ const handleMenuItemClick = useCallback(async (itemId) => {
           </button>
 
           <button
-            onClick={toggleTimer}
+            onClick={isBreakMode ? handleSkipBreakToPomodoro : toggleTimer}
             className="start-btn-large"
-            aria-label={isRunning ? 'Pause timer' : 'Start timer'}
+            aria-label={
+              isBreakMode
+                ? 'Skip break and return to pomodoro'
+                : (isRunning ? 'Pause timer' : 'Start timer')
+            }
           >
-            {isRunning ? 'Pause' : 'Start'}
+            {isBreakMode ? 'Skip' : (isRunning ? 'Pause' : 'Start')}
           </button>
 
           <button

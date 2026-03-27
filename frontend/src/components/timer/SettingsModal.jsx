@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './SettingsModal.css';
 
-const PRESETS = [
+export const PRESETS = [
     { id: 1, name: 'Classic Pomodoro', focus: 25, short: 5, long: 15, deletable: false },
     { id: 2, name: 'Extended Focus', focus: 50, short: 10, long: 30, deletable: true },
     { id: 3, name: 'Quick Sessions', focus: 15, short: 3, long: 10, deletable: true },
@@ -10,7 +10,7 @@ const PRESETS = [
 
 export default function SettingsModal({ onClose, onPresetChange }) {
     const [activeTab, setActiveTab] = useState('focus');
-    const [selectedPreset, setSelectedPreset] = useState(PRESETS[1]);
+    const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [presets, setPresets] = useState(PRESETS);
     const [countUpTimer, setCountUpTimer] = useState(false);

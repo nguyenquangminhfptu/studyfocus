@@ -9,45 +9,47 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export default function useTimer(initialMinutes = 25){
-  const [minutes, setMinutes] = useState(initialMinutes);
-    const [seconds, setSeconds] = useState(0);
+    const toSeconds = useCallback((valueInMinutes) => {
+        return Math.max(0, Math.round(Number(valueInMinutes || 0) * 60));
+    }, []);
+
+    const [totalSeconds, setTotalSeconds] = useState(() => toSeconds(initialMinutes));
     const [isRunning, setIsRunning] = useState(false);
     const intervalRef = useRef(null);//lưu trữ id của interval
 
     useEffect(() => {
         if (isRunning) {
             intervalRef.current = setInterval(() => {
-                if (seconds === 0) {
-                    if (minutes === 0) {
+                setTotalSeconds((prev) => {
+                    if (prev <= 1) {
                         clearInterval(intervalRef.current);
-                        setIsRunning(false); // Hết giờ
-                    } else {
-                        setMinutes((prev) => prev - 1);
-                        setSeconds(59);
+                        setIsRunning(false);
+                        return 0;
                     }
-                } else {
-                    setSeconds((prev) => prev - 1);
-                }
+                    return prev - 1;
+                });
             }, 1000);
         } else {
             clearInterval(intervalRef.current);
         }
 
         return () => clearInterval(intervalRef.current); // Cleanup
-    }, [isRunning, minutes, seconds]);
+    }, [isRunning]);
 
     const setTime = useCallback((newMinutes) => {
-    setMinutes(newMinutes);
-    setSeconds(0);
-    setIsRunning(false); // Dừng timer khi chuyển preset
-  }, []);
+        setTotalSeconds(toSeconds(newMinutes));
+        setIsRunning(false); // Dừng timer khi chuyển preset
+    }, [toSeconds]);
 
-    const toggleTimer = () => setIsRunning(!isRunning);
-    const resetTimer = () => {
+    const toggleTimer = () => setIsRunning((prev) => !prev);
+
+    const resetTimer = useCallback(() => {
         setIsRunning(false);
-        setMinutes(initialMinutes);
-        setSeconds(0);
-    };
+        setTotalSeconds(toSeconds(initialMinutes));
+    }, [initialMinutes, toSeconds]);
 
-      return { minutes, seconds, isRunning, toggleTimer, resetTimer, setTime };
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return { minutes, seconds, isRunning, toggleTimer, resetTimer, setTime };
 }
