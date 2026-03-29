@@ -1,3 +1,12 @@
+async function parseError(res, fallback) {
+  try {
+    const body = await res.json();
+    return body.message || body.error || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function login(data) {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
@@ -5,8 +14,8 @@ export async function login(data) {
     credentials: 'include',
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Login failed');
-  return await res.json();
+  if (!res.ok) throw new Error(await parseError(res, 'Username or password is incorrect.'));
+  return res.json();
 }
 
 export async function logout() {
@@ -14,8 +23,8 @@ export async function logout() {
     method: 'POST',
     credentials: 'include',
   });
-  if (!res.ok) throw new Error('Logout failed');
-  return await res.json();
+  if (!res.ok) throw new Error(await parseError(res, 'Logout failed.'));
+  return res.json();
 }
 
 export async function me() {
@@ -23,5 +32,5 @@ export async function me() {
     credentials: 'include',
   });
   if (!res.ok) throw new Error('Unauthenticated');
-  return await res.json();
+  return res.json();
 }

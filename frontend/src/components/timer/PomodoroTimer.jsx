@@ -7,6 +7,7 @@ import SettingsModal, { PRESETS } from './SettingsModal';
 import { logout } from '../../api/authentication/auth';
 import ProfilePage from '../profile/UserProfile';
 import { studySessionAPI } from '../../api/studySession';
+import { useToast } from '../../contexts/ToastContext';
 
 // SVG Icon imports
 import upgradeIcon from '../../assets/user-menu/gift.svg';
@@ -190,6 +191,7 @@ UserDropdownHeader.displayName = 'UserDropdownHeader';
 // ========== MAIN COMPONENT ==========
 export default function PomodoroTimer() {
   const navigate = useNavigate();
+  const toast = useToast();
   const { minutes, seconds, isRunning, toggleTimer, setTime } = useTimer(DEFAULT_PRESET_TIMES[0]);
 
   // States
@@ -260,16 +262,15 @@ export default function PomodoroTimer() {
       const saveSession = async () => {
         try {
           await studySessionAPI.createSession({
-            duration: presetTimes[0],       // lấy theo preset hiện tại
-            breakTime: presetTimes[1],      // lấy theo preset hiện tại
-            count: 1,                       // 1 pomodoro
+            duration: presetTimes[0],
+            breakTime: presetTimes[1],
+            count: 1,
             mode
           });
-          console.log('Session saved to backend');
-          // Thêm thông báo hoặc tự chuyển sang phiên tiếp theo
-           handleSkipToBreak(); // Bỏ comment nếu muốn tự chuyển sang break
+          toast.success('Session saved!');
+          handleSkipToBreak();
         } catch (error) {
-          console.error('Failed to save session:', error);
+          toast.error(error.message || 'Failed to save session.');
         }
       };
       
@@ -303,8 +304,7 @@ const handleMenuItemClick = useCallback(async (itemId) => {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Logout error:', error);
-      alert('Logout failed');
+      toast.error(error.message || 'Logout failed.');
     }
     setShowUserMenu(false);
     return;
@@ -365,7 +365,7 @@ const handleMenuItemClick = useCallback(async (itemId) => {
 
   const handleTogglePiP = useCallback(async () => {
     if (!('documentPictureInPicture' in window)) {
-      alert('Document Picture-in-Picture is not supported in your browser. Please use Chrome 116+');
+      toast.info('Picture-in-Picture is not supported. Please use Chrome 116+.');
       return;
     }
 
@@ -447,8 +447,7 @@ const handleMenuItemClick = useCallback(async (itemId) => {
       });
 
     } catch (error) {
-      console.error('Error opening Picture-in-Picture:', error);
-      alert('Cannot open Picture-in-Picture: ' + error.message);
+      toast.error('Cannot open Picture-in-Picture: ' + error.message);
     }
   }, [minutes, seconds, isRunning, toggleTimer, handleSkipToBreak]);
 
@@ -476,7 +475,7 @@ const handleMenuItemClick = useCallback(async (itemId) => {
       />
       <div className="timer-overlay" role="presentation" />
 
-      <header className="timer-header">
+<header className="timer-header">
         <div className="logo">
           <span className="logo-icon" aria-hidden="true">🎯</span>
           <span className="logo-text">StudyFocus</span>
