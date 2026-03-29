@@ -8,6 +8,7 @@ import { logout } from '../../api/authentication/auth';
 import ProfilePage from '../profile/UserProfile';
 import { studySessionAPI } from '../../api/studySession';
 import { useToast } from '../../contexts/ToastContext';
+import NotesPanel from '../notes/NotesPanel';
 
 // SVG Icon imports
 import upgradeIcon from '../../assets/user-menu/gift.svg';
@@ -138,7 +139,7 @@ const PresetDots = React.memo(({ currentPreset, onPresetChange }) => {
 });
 PresetDots.displayName = 'PresetDots';
 
-const FooterButtonsGroup = React.memo(({ buttons, direction }) => {
+const FooterButtonsGroup = React.memo(({ buttons, direction, onButtonClick }) => {
   return (
     <div className={`footer-${direction}`}>
       {buttons.map(btn => {
@@ -149,6 +150,7 @@ const FooterButtonsGroup = React.memo(({ buttons, direction }) => {
             className="footer-btn"
             aria-label={btn.label}
             title={btn.label}
+            onClick={() => onButtonClick?.(btn.id)}
           >
             {isSvg ? (
               <img
@@ -202,6 +204,7 @@ export default function PomodoroTimer() {
   const [presetTimes, setPresetTimes] = useState(DEFAULT_PRESET_TIMES);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isPiPMode, setIsPiPMode] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   // Refs
   const userMenuRef = useRef(null);
@@ -606,7 +609,11 @@ const handleMenuItemClick = useCallback(async (itemId) => {
       </div>
 
       <footer className="timer-footer">
-        <FooterButtonsGroup buttons={FOOTER_BUTTONS_LEFT} direction="left" />
+        <FooterButtonsGroup
+          buttons={FOOTER_BUTTONS_LEFT}
+          direction="left"
+          onButtonClick={(id) => { if (id === 'notes') setShowNotes(true); }}
+        />
         <FooterButtonsGroup buttons={FOOTER_BUTTONS_RIGHT} direction="right" />
       </footer>
 
@@ -619,6 +626,9 @@ const handleMenuItemClick = useCallback(async (itemId) => {
       )}
       {showProfile && (
         <ProfilePage onClose={() => setShowProfile(false)} />
+      )}
+      {showNotes && (
+        <NotesPanel onClose={() => setShowNotes(false)} />
       )}
     </div>
   );
